@@ -70,9 +70,6 @@ $(document).ready(function () {
         }
             </div>
           </div>
-          <div class="user">
-            <b>Owner:</b> ${place.name} Corregir nombre aquí
-          </div>
           <div class="description">${place.description}</div>
         </article>
         `;
