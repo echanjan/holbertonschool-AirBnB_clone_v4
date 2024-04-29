@@ -96,7 +96,9 @@ function available() {
 function addAminitiesToH4() {
   $('.amenities input[type="checkbox"]').on('change', function () {
     const data = inputBoxChecked();
-    $('.amenities h4').text(data.aminitiesNames.join(','));
+    let txt = data.aminitiesNames.join(',');
+    txt = txt.length >= 30 ? txt.slice(0, 30) + '...' : txt;
+    $('.amenities h4').text(txt);
   });
 }
 
