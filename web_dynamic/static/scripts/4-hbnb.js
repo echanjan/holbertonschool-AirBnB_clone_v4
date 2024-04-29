@@ -1,45 +1,10 @@
-// Actualiza el contenido dentro del h4 en Amenities,
-//con los aminities seleccionados
+// Una página dinámica con JQuery.
 
-$(document).ready(function () {
-  /**
-   * Obtiene una lista de las amenidades seleccionadas en checkboxes y las devuelve como una cadena.
-   * @returns {string} Una cadena que contiene los nombres de las amenidades seleccionadas, separadas por comas.
-   */
-  function inputBoxChecked() {
-    const amenitiesCollection = $('input[type="checkbox"]');
-    const amenitiesChecked = [];
-    amenitiesCollection.each(function (_, element) {
-      if (element.checked) {
-        amenitiesChecked.push(element.dataset.name);
-      }
-    });
-    return amenitiesChecked.join(',');
-  }
-  // Se lanza evento cada vez que el checkbox cambia
-  $('.amenities input[type="checkbox"]').on('change', function () {
-    $('.amenities h4').text(inputBoxChecked());
-  });
-});
-
-$(document).ready(function () {
-  $.ajax({
-    url: 'http://127.0.0.1:5001/api/v1/status',
-    method: 'GET',
-    dataType: 'json',
-    success: function (data) {
-      if (data.status === 'OK') {
-        $('#api_status').addClass('available');
-      }
-    },
-    error: function (_, status, error) {
-      console.error('Error en la solictud:', status, error);
-    },
-  });
-});
-
-$(document).ready(function () {
-  const body = {};
+/**
+ * Realiza una solicitud AJAX para buscar lugares y renderizar la información recibida en la interfaz de usuario.
+ * @param {Object} body - El cuerpo de la solicitud que contiene los parámetros de búsqueda de lugares (opcional).
+ */
+function renderPlaces(body = {}) {
   $.ajax({
     url: 'http://127.0.0.1:5001/api/v1/places_search/',
     method: 'POST',
@@ -78,12 +43,86 @@ $(document).ready(function () {
       console.error('Houston tenemos un problema', status, error);
     },
   });
-});
+}
 
-// Recupera el contenido de .amenities h4 para filtrar
-$(document).ready(function () {
-  $('button').on('click', function () {
-    let aminities = $('.amenities h4').text();
-    alert(aminities);
+/**
+ * Obtiene los nombres y IDs de las amenidades seleccionadas en casillas de verificación en el DOM.
+ * @returns {Object} - Un objeto que contiene dos arreglos: aminitiesNames (nombres de las amenidades seleccionadas)
+ *                      y amenitiesIds (IDs de las amenidades seleccionadas).
+ */
+function inputBoxChecked() {
+  const amenitiesCollection = $('input[type="checkbox"]');
+  const aminitiesNames = [];
+  const amenitiesIds = [];
+  amenitiesCollection.each(function (_, element) {
+    if (element.checked) {
+      aminitiesNames.push(element.dataset.name);
+      amenitiesIds.push(element.dataset.id);
+    }
   });
+  const data = {
+    aminitiesNames,
+    amenitiesIds,
+  };
+  return data;
+}
+
+/**
+ * Verifica la disponibilidad del servicio de la API consultando su estado mediante una solicitud AJAX.
+ * Actualiza la clase de un elemento HTML para reflejar la disponibilidad del servicio.
+ */
+function available() {
+  $(document).ready(function () {
+    $.ajax({
+      url: 'http://127.0.0.1:5001/api/v1/status',
+      method: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        if (data.status === 'OK') {
+          $('#api_status').addClass('available');
+        }
+      },
+      error: function (_, status, error) {
+        console.error('Error en la solictud:', status, error);
+      },
+    });
+  });
+}
+
+/**
+ * Actualiza el texto de un elemento h4 con los nombres de las amenidades seleccionadas
+ * cada vez que se cambia una casilla de verificación.
+ */
+function addAminitiesToH4() {
+  $('.amenities input[type="checkbox"]').on('change', function () {
+    const data = inputBoxChecked();
+    $('.amenities h4').text(data.aminitiesNames.join(','));
+  });
+}
+
+/**
+ * Filtra los lugares según las amenidades seleccionadas al
+ * hacer clic en un botón y renderiza los resultados.
+ */
+function filterPlacesForAminities() {
+  $('button').on('click', function () {
+    const data = inputBoxChecked();
+    const amenitiesIds = data.amenitiesIds;
+    const body = {
+      places: '',
+      amenities: amenitiesIds,
+    };
+    renderPlaces(body);
+  });
+}
+
+function main() {
+  addAminitiesToH4();
+  renderPlaces();
+  available();
+  filterPlacesForAminities();
+}
+
+$(document).ready(function () {
+  main();
 });
